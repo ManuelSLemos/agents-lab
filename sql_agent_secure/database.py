@@ -3,7 +3,21 @@
 import sqlite3
 import time
 
-from sql_agent.database import _SEED, QueryResult  # same sample data as sql_agent
+from sql_agent.database import QueryResult
+
+_SEED = """
+CREATE TABLE courses (id INTEGER PRIMARY KEY, name TEXT, level TEXT, price REAL);
+CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, course_id INTEGER REFERENCES courses(id));
+
+INSERT INTO courses VALUES
+    (1, 'Python from scratch', 'beginner', 49),
+    (2, 'React for beginners', 'beginner', 59),
+    (3, 'Introduction to AI', 'intermediate', 89);
+
+INSERT INTO students VALUES
+    (1, 'Ana', 1), (2, 'Luis', 1), (3, 'Marta', 2), (4, 'Pablo', 3), (5, 'Sofia', 3);
+"""
+
 
 TABLES = {"courses", "students"}
 FUNCTIONS = {"count", "sum", "avg", "min", "max", "round", "lower", "upper", "length", "abs", "coalesce"}

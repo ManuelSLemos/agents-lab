@@ -25,8 +25,8 @@ sql_agent/
 ├── agent.py      # the graph (the only place where the flow is described)
 ├── agents/       # one module per LLM agent
 ├── nodes.py      # plain-Python nodes and route names
-├── database.py   # sample SQLite data, schema, read-only query execution
-└── config.py     # model, MAX_RETRIES, state key
+├── database.py   # Chinook.db connection (read-only), schema, query execution
+└── config.py     # model, MAX_RETRIES, state key, DB_PATH
 ```
 
 ## Run
@@ -36,9 +36,12 @@ docker compose up -d ollama      # needs qwen3:4b pulled
 adk web                          # pick "sql_agent"
 ```
 
-Example questions: "¿Cuántos alumnos tiene cada curso?", "¿Cuál es el curso más caro?"
+The agent queries `Chinook.db` (repo root, git-ignored; override the path with `CHINOOK_DB_PATH`).
+
+Example questions: "¿Cuántas canciones tiene cada género?", "¿Qué 5 artistas tienen más álbumes?",
+"¿Cuál es el país con más ventas?"
 
 ## Safety
 
 Two layers: `validate` rejects anything that is not a `SELECT`, and the connection runs with
-`PRAGMA query_only = ON`, so even a query that slipped through cannot write.
+`PRAGMA query_only = ON`, so even a query that slipped through cannot write. The file is also opened with `mode=ro`.

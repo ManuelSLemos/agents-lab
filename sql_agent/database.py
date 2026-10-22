@@ -1,20 +1,9 @@
-"""SQLite access: sample data, schema introspection and read-only execution."""
+"""SQLite access to the Chinook database: schema introspection and read-only execution."""
 
 import sqlite3
 from dataclasses import dataclass
 
-_SEED = """
-CREATE TABLE courses (id INTEGER PRIMARY KEY, name TEXT, level TEXT, price REAL);
-CREATE TABLE students (id INTEGER PRIMARY KEY, name TEXT, course_id INTEGER REFERENCES courses(id));
-
-INSERT INTO courses VALUES
-    (1, 'Python from scratch', 'beginner', 49),
-    (2, 'React for beginners', 'beginner', 59),
-    (3, 'Introduction to AI', 'intermediate', 89);
-
-INSERT INTO students VALUES
-    (1, 'Ana', 1), (2, 'Luis', 1), (3, 'Marta', 2), (4, 'Pablo', 3), (5, 'Sofia', 3);
-"""
+from .config import DB_PATH
 
 
 @dataclass(frozen=True)
@@ -27,14 +16,14 @@ class QueryResult:
         return f"SQL: {self.sql}\nColumns: {self.columns}\nRows: {self.rows}"
 
 
-_connection = sqlite3.connect(":memory:", check_same_thread=False)
-_connection.executescript(_SEED)
-_connection.execute("PRAGMA query_only = ON")  # defense in depth: no writes after seeding
+# mode=ro makes SQLite itself refuse writes; query_only is a second layer on top.
+_connection = sqlite3.connect(f"file:{DB_PATH}?mode=ro", uri=True, check_same_thread=False)
+_connection.execute("PRAGMA query_only = ON")
 
 
 def get_schema() -> str:
     """Return the CREATE TABLE statements so the LLM knows what it can query."""
-    rows = _connection.execute("SELECT sql FROM sqlite_master WHERE type = 'table'")
+    rows = _connection.execute("SELECT sql FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'")
     return "\n".join(sql for (sql,) in rows)
 
 
