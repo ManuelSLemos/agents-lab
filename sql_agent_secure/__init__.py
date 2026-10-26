@@ -1,5 +1,9 @@
 """Hardened text-to-SQL: the SQLite engine decides what can be read."""
 
-from .agent import root_agent
+from observability import setup
+
+setup()
+
+from .agent import root_agent  # noqa: E402
 
 __all__ = ["root_agent"]

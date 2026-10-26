@@ -16,6 +16,16 @@ services:
               count: all
               capabilities: [gpu]
 
+  phoenix:
+    image: arizephoenix/phoenix:version-20.26.1
+    container_name: phoenix
+    ports:
+      - "6006:6006"
+    volumes:
+      - phoenix_data:/mnt/data
+    environment:
+      - PHOENIX_WORKING_DIR=/mnt/data
+
   adk:
     build:
       context: .
@@ -27,5 +37,12 @@ services:
       - .:/app
     depends_on:
       - ollama
+      - phoenix
     environment:
       - OLLAMA_API_BASE=http://ollama:11434  
+      - OTEL_EXPORTER_OTLP_TRACES_ENDPOINT=http://phoenix:6006/v1/traces
+      - OTEL_RESOURCE_ATTRIBUTES=openinference.project.name=sql_agent_secure
+      - PHOENIX_BASE_URL=http://phoenix:6006
+
+volumes:
+  phoenix_data:

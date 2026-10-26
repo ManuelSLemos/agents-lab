@@ -1,0 +1,29 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+RUN pip install uv
+
+ENV UV_PROJECT_ENVIRONMENT=/opt/venv \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH=/app \
+    PYTHONUNBUFFERED=1
+
+# Dependencies first so this layer is cached until pyproject/uv.lock change.
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project
+
+# Only what the secure agent needs. sql_agent is a library here, not a served agent.
+COPY security.py observability.py ./
+COPY sql_agent ./sql_agent
+COPY sql_agent_secure ./agents/sql_agent_secure
+
+RUN useradd --system --no-create-home app
+USER app
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=15s --timeout=3s --start-period=20s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+
+CMD ["adk", "api_server", "--host", "0.0.0.0", "--port", "8000", "--no-reload", "agents"]

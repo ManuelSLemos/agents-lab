@@ -10,10 +10,13 @@ dependencies = [
     "litellm>=1.102.0",
     "mcp>=2.3.0",
     "ollama>=0.6.3",
+    "openinference-instrumentation-litellm>=0.1.51",
+    "opentelemetry-exporter-otlp-proto-http>=1.42.1",
 ]
 
 [dependency-groups]
 dev = [
+    "arize-phoenix-client>=3.5.0",
     "pytest>=9.1.1",
 ]
 
